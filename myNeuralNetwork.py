@@ -35,11 +35,11 @@ def loadDataset():
             #data is a 1d array of bytes
             data = np.frombuffer(f.read(), np.uint8, offset = 16)
 
-            #creates an array of image matrixes
-            #first parameter determines the number of images, -1 means to use the length of data and
-            #the other dimensions to calculate it automatically
-            #second is the number of channels, 1 because it's monochrome, would be 3 if it were RGB for example
-            #third and fourth are the size of the image
+            '''creates an array of image matrixes
+            first parameter determines the number of images, -1 means to use the length of data and
+            the other dimensions to calculate it automatically
+            second is the number of channels, 1 because it's monochrome, would be 3 if it were RGB for example
+            third and fourth are the size of the image'''
             data = data.reshape(-1, 1, 28, 28)
 
             #convert from bytes to floats
@@ -64,12 +64,13 @@ trainIms, trainLbl, testIms, testLbl = loadDataset()
 
 
 
-#show an image, not permanent
+#show an image and print it's matrix
+'''
 import matplotlib.pyplot as plt
 plt.imshow(trainIms[0][0], cmap = "gray")
 plt.show()
 print(trainIms[0][0])
-
+'''
 
 
 #the sigmoid function takes any number and outputs a number between 0 and 1
@@ -92,11 +93,45 @@ class Network(object):
                         for x,y in zip(sizes[:-1], sizes[1:])]
 
     #returns the output of a neuron given input a
-    #a is a list of numbers between 0 and 1
+    #input and output are both numbers between 0 and 1
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w, a) + b)
         return a
+
+    '''SDG - stochastic gradient descent
+    Training method.
+    training_data is a list of tuples(x,y), x is a matrix representing an image, y is the desired output
+    an epoch is one learning iteration, 'epochs' is the number of iterations
+    mini_batch_size is PUT SOMETHING HERE
+    eta is the learning rate PUT SOMETHING HERE
+    test_data can be supplied to print out the accuracy for each epoch'''
+    def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
+
+        if test_data:
+            n_test = len(test_data)
+        n = len(training_data)
+
+        for j in xrange(epochs):
+            #first, shuffle the data and partition it into minibatches
+            #this makes sure the data is sampled from randomly
+            random.shuffle(training_data)
+            mini_batches = [
+                training_data[k:k+mini_batch_size]
+                for k in xrange(0, n, mini_batch_size)]
+            
+            #then, apply one step of sgd with each batch
+            for mini_batch in mini_batches:
+                self.update_mini_batch(mini_batch, eta)
+            
+            #print stuff if you want
+            if test_data:
+                print(f"Epoch {j}: {self.evaluate(test_data)} / {n_test}")
+            else:
+                print(f"Epoch {j} complete")
+            
+    
+    
 
 
 
