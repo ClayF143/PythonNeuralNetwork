@@ -90,13 +90,32 @@ class Network(object):
     def __init__(self, sizes):
         self.num_layers = len(sizes)
         self.sizes = sizes
+        '''in each layer but the first, each neuron has one bias
+        biases in Network(3,4,5,2) example
+        where a1, a2, b1, b2 etc are random numbers
+        biases = [[a1,a2,a3,a4]
+                 [b1,b2,b3,b4,b5]
+                 [c1,c2]]'''
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
+
+        # each neuron has an array of weights with equal length to the size
+        # of the previous layer
         self.weights = [np.random.randn(y, x)
                         for x, y in zip(sizes[:-1], sizes[1:])]
 
-    # returns the output of a neuron given input a
-    # input and output are both numbers between 0 and 1
+        '''the actual values in weights and biases are random standard
+        normal distribution, aka relatively close to 0
+        the values don't matter yet, they just needs to matter
+        eventually via learning'''
+
     def feedforward(self, a):
+        '''input is an array of values of length equal to previous layer of
+        values between 0 and 1
+        multiplies each value in the array by each associated weight and sums
+        the products aka dot product, then adds the bias
+        put that value through the sigmoid function and you have an output
+        between 0 and 1
+        '''
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w, a) + b)
         return a
