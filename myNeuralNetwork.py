@@ -7,7 +7,7 @@ import io
 from PIL import Image
 
 # great source: http://neuralnetworksanddeeplearning.com/chap1.html
-
+# this was more of a research project than anything
 
 def loadDataset():
     # not working atm
@@ -81,6 +81,9 @@ def sigmoid(z):
     gets pretty close to 1/0 at +-4'''
     return 1/(math.exp(-1*z) + 1)
 
+def sigmoidPrime(z):
+    return sigmoid(z)*(1 - sigmoid(z))
+
 
 class Network(object):
     '''sizes is a list of numbers,
@@ -105,7 +108,7 @@ class Network(object):
 
         '''the actual values in weights and biases are random standard
         normal distribution, aka relatively close to 0
-        the values don't matter yet, they just needs to matter
+        the specific values don't matter yet, they just needs to matter
         eventually via learning'''
 
     def feedforward(self, a):
@@ -127,7 +130,9 @@ class Network(object):
     an epoch is one learning iteration, 'epochs' is the number of iterations
     mini_batch_size is PUT SOMETHING HERE
     eta is the learning rate PUT SOMETHING HERE
-    test_data can be supplied to print out the accuracy for each epoch'''
+    test_data is usually a smaller, different version of training data that
+    can be supplied to print out the accuracy for each epoch based on the
+    test data'''
     def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
 
         if test_data:
@@ -136,7 +141,6 @@ class Network(object):
 
         for j in xrange(epochs):
             # first, shuffle the data and partition it into minibatches
-            # this makes sure the data is sampled from randomly
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
@@ -159,3 +163,11 @@ class Network(object):
     def update_mini_batch(self, mini_batch, eta):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
+        for x, y in mini_batch:
+            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
+            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        self.weights = [w - (eta/len(mini_batch)) * nw
+                        for w, nw in zip(self.weights, nabla_w)]
+        self.biases = [b - (eta/len(mini_batch)) * nb
+                       for b, nb ni zip(self.biases, nabla_b)]
